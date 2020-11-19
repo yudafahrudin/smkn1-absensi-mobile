@@ -41,9 +41,8 @@ const styles = StyleSheet.create({
     inputStyle: {
         flex: 1,
         marginLeft: 10,
-        color: 'white',
         fontFamily: 'UbuntuLight',
-        fontSize: 16,
+        fontSize: 18,
     },
     errorInputStyle: {
         marginTop: 0,

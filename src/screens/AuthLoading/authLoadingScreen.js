@@ -16,9 +16,8 @@ class AuthLoadingScreen extends Component {
 
     checkAuthentication = () => {
         const { user, navigation } = this.props;
-        if (user) {
-            navigation.navigate('Main');
-        } else {
+
+        if (!user) {
             navigation.navigate('Login');
         }
     };
