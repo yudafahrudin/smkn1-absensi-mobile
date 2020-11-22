@@ -1,9 +1,8 @@
-import { Alert } from 'react-native';
 import api from '../services/api';
 import EndPoints from '../constants/endPoints';
 import { USER } from '../constants/actionTypes';
 
-export const login = (username, password, type, navigateSucces) => (
+export const login = (username, password, type, afterSuccess) => (
   dispatch,
   getState,
 ) => {
@@ -23,11 +22,9 @@ export const login = (username, password, type, navigateSucces) => (
 
   return api(getState, dispatch, EndPoints.login, 'post', params).then(
     (response) => {
-      console.log(response);
       const { data } = response;
-      const { message } = data;
-      if (message) {
-      } else {
+      const { status } = data;
+      if (status !== 'error') {
         dispatch({
           type: USER,
           payload: {
@@ -35,59 +32,10 @@ export const login = (username, password, type, navigateSucces) => (
             token: data.access_token,
           },
         });
-        setTimeout(() => navigateSucces(), 0);
+        setTimeout(() => afterSuccess(), 100)
       }
     },
   );
-};
-
-export const register = (
-  {
-    name,
-    password,
-    email,
-    type,
-    address,
-    nama_kios,
-    district_id,
-    village_id,
-    telp,
-    latitude,
-    longitude,
-    jam_buka,
-  },
-  navigateSucces,
-) => (dispatch, getState) => {
-  const params = {
-    name,
-    password,
-    email,
-    address,
-    type,
-    district_id,
-    village_id,
-    nama_kios,
-    telp,
-    latitude,
-    longitude,
-    jam_buka,
-  };
-  return api(getState, dispatch, EndPoints.register, 'post', params)
-    .then((response) => {
-      console.log('inside session js', response);
-      const { data } = response;
-      const { msg } = data;
-      if (msg) {
-        Alert.alert('Error', response.data.msg);
-      } else {
-        Alert.alert('Berhasil', 'Berhasil mendaftarkan akun anda', [
-          { text: 'OK', onPress: () => navigateSucces() },
-        ]);
-      }
-    })
-    .catch((err) => {
-      Alert.alert('Error', JSON.stringify(err));
-    });
 };
 
 export const updateprofile = (data) => (dispatch, getState) => {
@@ -106,6 +54,9 @@ export const updateprofile = (data) => (dispatch, getState) => {
   );
 };
 
-export const logout = () => ({
-  type: 'RESET_STATE',
-});
+export const logout = (afterSuccess) => (dispatch) => {
+  dispatch({
+    type: 'RESET_STATE',
+  })
+  setTimeout(() => afterSuccess(), 0)
+};

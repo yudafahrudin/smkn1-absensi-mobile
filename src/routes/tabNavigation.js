@@ -1,47 +1,73 @@
 import React from 'react';
-import { View, Text } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Button } from 'react-native-elements';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-import { logout } from '../actions/session';
+import { getHome, getAbsent } from '../actions/teacher';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-function HomeScreen(props) {
-    const { actions } = props;
-    return (
-        <View style={{ backgroundColor: '#f0f0f0', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Home!</Text>
-            <Button onPress={() => actions.logout()} title="Logout" />
-        </View>
-    );
-}
-
-function SettingsScreen() {
-    return (
-        <View style={{ backgroundColor: 'blue', flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>Settings!</Text>
-        </View>
-    );
-}
+import HomeScreen from '../screens/Home/HomeScreen';
+import AbsentScreen from '../screens/Absent/AbsentScreen';
+import ProfileScreen from '../screens/Profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
 const IndexNavigation = (props) => (
-    <NavigationContainer>
-        <Tab.Navigator>
-            <Tab.Screen name="Home" children={() => <HomeScreen {...props} />} />
-            <Tab.Screen name="Settings" component={SettingsScreen} />
-        </Tab.Navigator>
-    </NavigationContainer>
+    <Tab.Navigator initialRouteName="Main"
+        tabBarOptions={{ showLabel: false }} screenOptions={({ route }) => ({
+            tabBarIcon: ({ focused }) => {
+                let iconName, coloring;
+
+                if (route.name === 'Main') {
+                    iconName = 'home';
+                    coloring = focused
+                        ? '#b6c4e2'
+                        : '#3b5998';
+                } else if (route.name === 'Profile') {
+                    iconName = 'user-circle-o';
+                    coloring = focused
+                        ? '#b6c4e2'
+                        : '#3b5998';
+                } else if (route.name === 'Absensi') {
+                    iconName = 'file';
+                    coloring = focused
+                        ? '#b6c4e2'
+                        : '#3b5998';
+                }
+
+                return <Icon
+                    name={iconName}
+                    type={'simple-line-icon'}
+                    color={coloring}
+                    size={30}
+                />
+            }
+        })} >
+        <Tab.Screen name="Main"
+            listeners={() => ({
+                tabPress: async () => {
+                    const { actions } = props;
+                    await actions.getHome();
+                },
+            })}
+            children={() => <HomeScreen {...props} />} />
+        <Tab.Screen name="Absensi"
+            listeners={() => ({
+                tabPress: async () => {
+                    const { actions } = props;
+                    await actions.getAbsent();
+                },
+            })}
+            children={() => <AbsentScreen {...props} />} />
+        <Tab.Screen name="Profile" children={() => <ProfileScreen {...props} />} />
+    </Tab.Navigator >
 );
 
 const mapStateToProps = () => ({});
 const mapDispatchToProps = (dispatch) => ({
     actions: bindActionCreators(
         {
-            logout,
+            getHome, getAbsent
         },
         dispatch,
     ),

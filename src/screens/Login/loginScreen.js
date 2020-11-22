@@ -3,31 +3,27 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import {
     View,
-    StyleSheet,
+    ActivityIndicator,
     KeyboardAvoidingView,
-    Alert,
-    StatusBar,
     ImageBackground,
-    TouchableOpacity,
 } from 'react-native';
 import _ from 'lodash';
-import PropTypes from 'prop-types';
 import { login } from '../../actions/session';
 import { Picker } from '@react-native-picker/picker';
-import { Button, Text, Input, Card } from 'react-native-elements';
+import { Button, Overlay, Card, Text } from 'react-native-elements';
 import FormInput from './Components/formInput';
 
 usernameInput = null;
 passwordInput = null;
 
 const LoginScreen = (props) => {
-
-    const [username, setUsername] = useState(null);
-    const [password, setPassword] = useState(null);
+    const bgImage = require('../../assets/images/classroom.jpg');
+    const [username, setUsername] = useState('121212');
+    const [password, setPassword] = useState("adminadmin");
     const [type, setType] = useState("guru");
     const [usernameValid, setUsernameValid] = useState(true);
     const [passwordValid, setpasswordValid] = useState(true);
-    const [disable, setDisable] = useState(false);
+    const [overlayActive, setOverlay] = useState(false);
 
     const validateUsername = (username) => {
         if (!username) {
@@ -47,8 +43,9 @@ const LoginScreen = (props) => {
         }
     }
 
-    const navigateApp = (navigation) => {
-        navigation.navigate('Home');
+    const afterSuccess = (navigation) => {
+        navigation.navigate('TabNav');
+        setOverlay(false)
     }
 
     const onPressLogin = async (props) => {
@@ -58,18 +55,29 @@ const LoginScreen = (props) => {
         validatePassword(password);
 
         if (username && password) {
-            console.log(12);
-            await actions
-                .login(username, password, type, () => navigateApp(navigation))
-                .then()
+            setOverlay(true);
+            await actions.login(
+                username,
+                password,
+                type,
+                () => afterSuccess(navigation)
+            );
         }
-
     };
 
     return (
         <KeyboardAvoidingView>
-            <View style={{ justifyContent: 'center', height: '100%', padding: 10 }}>
-                <Card>
+            <ImageBackground
+                source={bgImage}
+                style={{ height: '100%', justifyContent: 'center' }}
+            >
+                <Overlay isVisible={overlayActive}>
+                    <View>
+                        <ActivityIndicator size="small" color="grey" />
+                        <Text>Tunggu...</Text>
+                    </View>
+                </Overlay>
+                <Card containerStyle={{ borderRadius: 10 }}>
                     <Card.Title style={{ fontSize: 25 }}>SMKN1 Absensi</Card.Title>
                     <Card.Divider />
                     <FormInput
@@ -79,7 +87,6 @@ const LoginScreen = (props) => {
                         onChangeText={(username) => setUsername(username)}
                         placeholder="NIS / NIP"
                         returnKeyType="next"
-                        disabled={disable}
                         errorMessage={
                             usernameValid ? null : "Your username can't be blank"
                         }
@@ -92,7 +99,6 @@ const LoginScreen = (props) => {
                         placeholder="Password"
                         secureTextEntry
                         returnKeyType="next"
-                        disabled={disable}
                         errorMessage={
                             passwordValid ? null : 'Please enter at least 8 characters'
                         }
@@ -123,12 +129,17 @@ const LoginScreen = (props) => {
                         </Picker>
                     </View>
 
-                    <Button title={'MASUK'} onPress={() => {
-                        onPressLogin(props);
-                    }} />
+                    <Button
+                        title={'MASUK'}
+                        containerStyle={{ borderRadius: 30 }}
+                        buttonStyle={{ backgroundColor: '#3b5998' }}
+                        onPress={() => {
+                            onPressLogin(props);
+                        }} />
                 </Card>
-            </View>
+            </ImageBackground>
         </KeyboardAvoidingView>
+
     );
 }
 

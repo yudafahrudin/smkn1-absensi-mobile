@@ -1,19 +1,18 @@
 import React from 'react';
-import { StatusBar } from 'react-native';
-import { connect } from 'react-redux';
+import { } from 'react-native';
 import _ from 'lodash';
+import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import TabNavigation from './src/routes/tabNavigation';
+import { NavigationContainer } from '@react-navigation/native';
 import StackNavigation from './src/routes/stackNavigation';
 
-const AppContainer = (props) => {
-  const { user } = props;
+// const Drawer = createDrawerNavigator();
+const AppContainer = () => {
   return (
-    <>
-      <StatusBar barStyle="dark-content" />
-      {user ? <TabNavigation /> : <StackNavigation />}
-    </>
-  );
+    <NavigationContainer>
+      <StackNavigation />
+    </NavigationContainer>
+  )
 }
 
 const mapStateToProps = (state) => ({

@@ -37,7 +37,7 @@ const api = (getState, dispatch, endPoint, method = 'get', params, headers) => {
   };
 
   if (getState) {
-    const {token} = getState().session;
+    const { token } = getState().session;
     headersData = {
       Authorization: token ? `Bearer ${token}` : '',
       ...headersData,
@@ -64,14 +64,16 @@ const api = (getState, dispatch, endPoint, method = 'get', params, headers) => {
     ],
   };
 
+  console.log('option data', optionData);
+
   return axios(optionData)
     .then((response) => {
       return response;
     })
     .catch((error) => {
-      const {response} = error;
-      Alert.alert('Error', JSON.stringify(response.data.message));
-      throw new Error(error);
+      const { response } = error;
+      Alert.alert('error', JSON.stringify(response.data.message));
+      return response;
     });
 };
 
