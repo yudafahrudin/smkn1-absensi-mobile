@@ -1,16 +1,24 @@
 import React from 'react';
-import { ScrollView, View, Text } from 'react-native';
-import { Badge, Card, ListItem, Header } from 'react-native-elements';
-import _ from 'lodash';
+import { ScrollView, View, Text, StyleSheet } from 'react-native';
+import { Badge, ButtonGroup, Card, ListItem, Header } from 'react-native-elements';
 import { getAbsent } from '../../actions/teacher';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import _ from 'lodash';
 
 import EmptyText from '../../components/EmptyText';
 
 class AbsentScreen extends React.Component {
+
+    state = {
+        selectedIndex: -1,
+        absention: [],
+        statusName: ['masuk', 'absen', 'izin', 'sakit', 'lainnya']
+    }
+
     componentDidMount = () => {
         this.startingAbsentData()
+        this.generateListAbsention()
     }
 
     startingAbsentData = async () => {
@@ -18,9 +26,48 @@ class AbsentScreen extends React.Component {
         await actions.getAbsent();
     }
 
+    updateIndex = (status, studentId) => {
+        const { absention } = this.state
+        const studentData = absention[studentId];
+
+        if (studentData) {
+            studentData.status = status;
+        }
+
+        this.setState({
+            absention
+        })
+    }
+
+    getSelectedIndex = (studentId) => {
+        const { absention } = this.state
+        const studentData = absention[studentId];
+        return studentData ? studentData.status : 0;
+    }
+
+    generateListAbsention = () => {
+        const { absent } = this.props;
+        const { classToday } = absent;
+
+        let student = [];
+        if (classToday) {
+            classToday.map((val) => {
+                _.assign(val, { status: 0 });
+                student[val.id] = val;
+            });
+        }
+
+        this.setState({
+            absention: student
+        })
+    }
+
     render() {
         const { absent } = this.props;
         const { classToday, scheduleToday } = absent;
+        const { absention, statusName } = this.state;
+
+        console.log('absent', absention);
 
         if (absent) {
             return (
@@ -43,18 +90,24 @@ class AbsentScreen extends React.Component {
                             <Card>
                                 <Card.Title style={{ fontSize: 20, fontWeight: '500' }}>
                                     JADWAL ANDA SEKARANG
-                        </Card.Title>
+                                </Card.Title>
                                 <Card.Divider />
                                 <View style={{ alignItems: 'center' }}>
                                     {
                                         !_.isEmpty(scheduleToday) ? (
                                             <>
-                                                <Text style={{ fontSize: 20 }}>
-                                                    {scheduleToday.subject.name}
+                                                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
+                                                    ({" "}{scheduleToday.subject.name}{" "})
                                                 </Text>
-                                                <View style={{ flexDirection: 'row' }}>
+                                                <View style={{
+                                                    flexDirection: 'row',
+                                                    width: '100%',
+                                                    height: 50,
+                                                    justifyContent: 'space-around',
+                                                    alignItems: 'center'
+                                                }}>
                                                     <Badge
-                                                        containerStyle={{ marginTop: 20 }}
+                                                        // containerStyle={{ marginTop: 20 }}
                                                         badgeStyle={{ padding: 15 }}
                                                         status="primary"
                                                         value={
@@ -66,7 +119,7 @@ class AbsentScreen extends React.Component {
                                                         }
                                                     />
                                                     <Badge
-                                                        containerStyle={{ marginTop: 20, marginLeft: 10 }}
+                                                        // containerStyle={{ marginTop: 20 }}
                                                         badgeStyle={{ padding: 15 }}
                                                         status="warning"
                                                         value={
@@ -76,7 +129,7 @@ class AbsentScreen extends React.Component {
                                                         }
                                                     />
                                                     <Badge
-                                                        containerStyle={{ marginTop: 20, marginLeft: 10 }}
+                                                        // containerStyle={{ marginTop: 20 }}
                                                         badgeStyle={{ padding: 15 }}
                                                         status="success"
                                                         value={
@@ -94,15 +147,36 @@ class AbsentScreen extends React.Component {
                             <Card>
                                 <Card.Title style={{ fontSize: 20, fontWeight: '400' }}>
                                     DAFTAR SISWA DI JADWAL SEKARANG
-                        </Card.Title>
+                                </Card.Title>
+                                {
+                                    !_.isEmpty(scheduleToday) ? (<Card.FeaturedSubtitle style={{ textAlign: 'center', marginTop: -5 }}>
+                                        <Text style={{ color: "#000", fontSize: 20, fontWeight: 'bold' }}>
+                                            ({" "}
+                                            {scheduleToday.kelas.grade + " "}
+                                            {scheduleToday.kelas.majors + " "}
+                                            {scheduleToday.kelas.number + " "}
+                                            {" "})
+                                     </Text>
+                                    </Card.FeaturedSubtitle>) : (<></>)
+                                }
                                 <Card.Divider />
                                 <View>
                                     {
                                         !_.isEmpty(classToday) ? classToday.map((l, i) => (
-                                            <ListItem key={i} bottomDivider>
+                                            <ListItem key={i} style={{ marginTop: -10 }}>
                                                 <ListItem.Content>
-                                                    <ListItem.Title style={{ color: '#000' }}>{l.name}</ListItem.Title>
+                                                    <ListItem.Title style={{ fontSize: 17 }}>{l.name}</ListItem.Title>
                                                     <ListItem.Subtitle>{l.nis}</ListItem.Subtitle>
+                                                    <ButtonGroup
+                                                        onPress={(index) => this.updateIndex(index, l.id)}
+                                                        selectedIndex={this.getSelectedIndex(l.id)}
+                                                        buttons={statusName}
+                                                        selectedTextStyle={styles.selectedText}
+                                                        containerStyle={{
+                                                            marginLeft: 0,
+                                                            marginTop: 10
+                                                        }}
+                                                    />
                                                 </ListItem.Content>
                                             </ListItem>
                                         )) : (<EmptyText />)
@@ -118,6 +192,12 @@ class AbsentScreen extends React.Component {
         }
     }
 }
+
+const styles = StyleSheet.create({
+    selectedText: {
+        color: "#fff"
+    }
+});
 
 const mapStateToProps = (state) => ({
     absent: _.get(state.teacher, 'absent'),
