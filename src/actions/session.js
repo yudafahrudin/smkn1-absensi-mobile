@@ -2,7 +2,7 @@ import api from '../services/api';
 import EndPoints from '../constants/endPoints';
 import { USER } from '../constants/actionTypes';
 
-export const login = (username, password, type, afterSuccess) => (
+export const login = (username, password, type, afterSuccess, afterError) => (
   dispatch,
   getState,
 ) => {
@@ -32,10 +32,12 @@ export const login = (username, password, type, afterSuccess) => (
             token: data.access_token,
           },
         });
-        setTimeout(() => afterSuccess(), 100)
+        setTimeout(() => afterSuccess(), 500)
+      } else {
+        throw new Error
       }
     },
-  );
+  )
 };
 
 export const updateprofile = (data) => (dispatch, getState) => {

@@ -61,7 +61,9 @@ const LoginScreen = (props) => {
                 password,
                 type,
                 () => afterSuccess(navigation)
-            );
+            ).catch(() => {
+                setTimeout(() => setOverlay(false), 500)
+            });
         }
     };
 
@@ -103,8 +105,7 @@ const LoginScreen = (props) => {
                             passwordValid ? null : 'Please enter at least 8 characters'
                         }
                         onSubmitEditing={() => {
-                            this.validatePassword();
-                            this.confirmationPasswordInput.focus();
+                            onPressLogin(props);
                         }}
                     />
 

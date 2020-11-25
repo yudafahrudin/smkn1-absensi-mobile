@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
-import { Badge, ButtonGroup, Card, ListItem, Header } from 'react-native-elements';
-import { getAbsent } from '../../actions/teacher';
+import { Badge, ButtonGroup, Card, ListItem, Header, Button, Overlay } from 'react-native-elements';
+import { getAbsent, submitAbsent } from '../../actions/teacher';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import _ from 'lodash';
@@ -13,36 +13,20 @@ class AbsentScreen extends React.Component {
     state = {
         selectedIndex: -1,
         absention: [],
-        statusName: ['masuk', 'absen', 'izin', 'sakit', 'lainnya']
+        absentionFiltering: [],
+        statusName: ['masuk', 'absen', 'izin', 'sakit', 'lainnya'],
+        isOverlay: false
     }
 
     componentDidMount = () => {
         this.startingAbsentData()
-        this.generateListAbsention()
     }
 
     startingAbsentData = async () => {
         const { actions } = this.props;
-        await actions.getAbsent();
-    }
-
-    updateIndex = (status, studentId) => {
-        const { absention } = this.state
-        const studentData = absention[studentId];
-
-        if (studentData) {
-            studentData.status = status;
-        }
-
-        this.setState({
-            absention
-        })
-    }
-
-    getSelectedIndex = (studentId) => {
-        const { absention } = this.state
-        const studentData = absention[studentId];
-        return studentData ? studentData.status : 0;
+        await actions.getAbsent().then(() =>
+            this.generateListAbsention()
+        );
     }
 
     generateListAbsention = () => {
@@ -62,10 +46,57 @@ class AbsentScreen extends React.Component {
         })
     }
 
+    updateIndex = (status, studentId) => {
+        const { absention } = this.state
+        const studentData = absention[studentId];
+        console.log(status, studentId, studentData);
+        if (studentData) {
+            studentData.status = status;
+        }
+
+        this.setState({
+            absention
+        })
+    }
+
+    getSelectedIndex = (studentId) => {
+        const { absention } = this.state
+        const studentData = absention[studentId];
+        return studentData ? studentData.status : 0;
+    }
+
+    setOverlay = () => {
+        const { isOverlay } = this.state;
+        this.setState({
+            isOverlay: !isOverlay
+        })
+    }
+
+    filterAbsentionStudent = () => {
+        const { absention } = this.state;
+        this.setOverlay()
+
+        const filtering = absention.filter((val) => val.status !== 0);
+        this.setState({
+            absentionFiltering: filtering
+        })
+    }
+
+    submitAbsention = async () => {
+        const { absentionFiltering, statusName } = this.state;
+        const { actions, absent } = this.props;
+        const { scheduleToday } = absent;
+        const userId = absentionFiltering.map(val => val.id);
+        const reasons = absentionFiltering.map(val => statusName[val.status]);
+        await actions.submitAbsent(scheduleToday.id, userId, reasons).then(() => this.setOverlay());
+    }
+
+
+
     render() {
         const { absent } = this.props;
         const { classToday, scheduleToday } = absent;
-        const { absention, statusName } = this.state;
+        const { absention, statusName, isOverlay, absentionFiltering } = this.state;
 
         console.log('absent', absention);
 
@@ -79,6 +110,30 @@ class AbsentScreen extends React.Component {
                             style: { fontSize: 20, fontWeight: 'bold', color: '#fff' }
                         }}
                     />
+                    <Overlay isVisible={isOverlay}>
+                        <View style={{ width: 340 }}>
+                            <Text style={{ fontSize: 18, textAlign: 'center' }}>Apakah anda yakin dengan absensi ini ?</Text>
+                            <View style={{ marginTop: 20 }}>
+
+                                {
+                                    !_.isEmpty(absentionFiltering) ? absentionFiltering.map((val) =>
+                                        <>
+                                            <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
+                                                {val.name}
+                                                {" "}
+                                                ({statusName[val.status]})
+                                            </Text>
+                                        </>
+                                    ) : <EmptyText />
+                                }
+
+                            </View>
+                            <View style={{ flexDirection: 'row', alignSelf: 'center', marginTop: 20 }}>
+                                <Button disabled={_.isEmpty(absentionFiltering)} onPress={() => this.submitAbsention()} title="Ya, kirim" />
+                                <Button onPress={() => this.setOverlay()} containerStyle={{ marginLeft: 20 }} title="Batal" />
+                            </View>
+                        </View>
+                    </Overlay>
                     <ScrollView style={
                         {
                             height: '100%',
@@ -129,7 +184,6 @@ class AbsentScreen extends React.Component {
                                                         }
                                                     />
                                                     <Badge
-                                                        // containerStyle={{ marginTop: 20 }}
                                                         badgeStyle={{ padding: 15 }}
                                                         status="success"
                                                         value={
@@ -159,7 +213,9 @@ class AbsentScreen extends React.Component {
                                      </Text>
                                     </Card.FeaturedSubtitle>) : (<></>)
                                 }
+                                <Text>Menambahkan respon list absent untuk membuat auto button grup sesuai dengan status absen siswa</Text>
                                 <Card.Divider />
+
                                 <View>
                                     {
                                         !_.isEmpty(classToday) ? classToday.map((l, i) => (
@@ -182,6 +238,14 @@ class AbsentScreen extends React.Component {
                                         )) : (<EmptyText />)
                                     }
                                 </View>
+
+                                {
+                                    !_.isEmpty(classToday) ?
+                                        <>
+                                            <Card.Divider />
+                                            <Button onPress={() => { this.filterAbsentionStudent() }} title="Kirim Absensi" />
+                                        </> : <></>
+                                }
                             </Card>
                         </View>
                     </ScrollView>
@@ -207,6 +271,7 @@ const mapDispatchToProps = (dispatch) => ({
     actions: bindActionCreators(
         {
             getAbsent,
+            submitAbsent
         },
         dispatch,
     ),
