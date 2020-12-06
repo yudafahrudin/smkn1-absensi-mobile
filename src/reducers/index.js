@@ -1,10 +1,12 @@
 import { combineReducers } from 'redux';
 import session from './session';
 import teacher from './teacher';
+import parent from './parent';
 
 const rootReducer = combineReducers({
   session,
-  teacher
+  teacher,
+  parent
 });
 
 export default rootReducer;

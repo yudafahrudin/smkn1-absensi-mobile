@@ -108,7 +108,6 @@ const LoginScreen = (props) => {
                             onPressLogin(props);
                         }}
                     />
-
                     <View style={{
                         borderRadius: 40,
                         borderWidth: 1,

@@ -1,14 +1,8 @@
-import { TEACHER_HOME, TEACHER_ABSENT, RESET_STATE } from '../constants/actionTypes';
+import { TEACHER_HOME, TEACHER_ABSENT, TEACHER_SUBMIT, RESET_STATE } from '../constants/actionTypes';
 
 const initialState = {
-    home: {
-        absenToday: null,
-        schedulesToday: null
-    },
-    absent: {
-        scheduleToday: null,
-        classToday: null
-    }
+    home: [],
+    absent: []
 };
 
 const reducer = (state = initialState, action) => {
@@ -31,6 +25,11 @@ const reducer = (state = initialState, action) => {
                     scheduleToday: payload.schedule_today,
                     classToday: payload.class_list
                 }
+            };
+        }
+        case TEACHER_SUBMIT: {
+            return {
+                ...state,
             };
         }
         case RESET_STATE: {

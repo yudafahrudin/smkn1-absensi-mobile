@@ -31,7 +31,7 @@ const ProfileScree = (props) => {
             >
                 <Card>
                     <Card.Title style={{ fontSize: 20, fontWeight: '400' }}>
-                        Profile Akun
+                        Selamat Datang
                     </Card.Title>
                     <Card.Divider />
                     <View style={{ alignItems: 'center' }}>

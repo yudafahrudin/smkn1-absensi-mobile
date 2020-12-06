@@ -1,7 +1,7 @@
 import React from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
 import { Badge, ButtonGroup, Card, ListItem, Header, Button, Overlay } from 'react-native-elements';
-import { getAbsent, submitAbsent } from '../../actions/teacher';
+import { getAbsentTeacher, submitAbsentTeacher } from '../../actions/teacher';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import _ from 'lodash';
@@ -24,8 +24,8 @@ class AbsentScreen extends React.Component {
 
     startingAbsentData = async () => {
         const { actions } = this.props;
-        await actions.getAbsent().then(() =>
-            this.generateListAbsention()
+        await actions.getAbsentTeacher().then(() =>
+            setTimeout(() => this.generateListAbsention(), 100)
         );
     }
 
@@ -36,8 +36,10 @@ class AbsentScreen extends React.Component {
         let student = [];
         if (classToday) {
             classToday.map((val) => {
-                _.assign(val, { status: 0 });
-                student[val.id] = val;
+                if (val.status) {
+                    _.assign(val, { status: this.indexOfStatusName(val.status) });
+                    student[val.id] = val;
+                }
             });
         }
 
@@ -59,10 +61,26 @@ class AbsentScreen extends React.Component {
         })
     }
 
+    indexOfStatusName = (value) => {
+        const { statusName } = this.state
+        return statusName.indexOf(value);
+    }
+
     getSelectedIndex = (studentId) => {
+        const { home } = this.props;
+        const { absenToday } = home;
         const { absention } = this.state
+
+        let thereStudentAbsentToday = null;
+        if (!_.isEmpty(absenToday)) {
+            thereStudentAbsentToday = absenToday.find(val => val.user_id == studentId)
+        }
         const studentData = absention[studentId];
-        return studentData ? studentData.status : 0;
+        // const studentStatus = thereStudentAbsentToday ?
+        //     this.indexOfStatusName(thereStudentAbsentToday.reason)
+        //     : studentData ? studentData.status : 0;
+        const studentStatus = studentData ? studentData.status : 0;
+        return studentStatus;
     }
 
     setOverlay = () => {
@@ -83,12 +101,12 @@ class AbsentScreen extends React.Component {
     }
 
     submitAbsention = async () => {
-        const { absentionFiltering, statusName } = this.state;
+        const { absention, statusName } = this.state;
         const { actions, absent } = this.props;
         const { scheduleToday } = absent;
-        const userId = absentionFiltering.map(val => val.id);
-        const reasons = absentionFiltering.map(val => statusName[val.status]);
-        await actions.submitAbsent(scheduleToday.id, userId, reasons).then(() => this.setOverlay());
+        const userId = absention.map(val => val.id).filter(val => val);
+        const reasons = absention.map(val => statusName[val.status]).filter(val => val);
+        await actions.submitAbsentTeacher(scheduleToday.id, userId, reasons).then(() => this.setOverlay());
     }
 
 
@@ -113,12 +131,12 @@ class AbsentScreen extends React.Component {
                     <Overlay isVisible={isOverlay}>
                         <View style={{ width: 340 }}>
                             <Text style={{ fontSize: 18, textAlign: 'center' }}>Apakah anda yakin dengan absensi ini ?</Text>
-                            <View style={{ marginTop: 20 }}>
+                            {/* <View style={{ marginTop: 20 }}>
 
                                 {
-                                    !_.isEmpty(absentionFiltering) ? absentionFiltering.map((val) =>
+                                    !_.isEmpty(absentionFiltering) ? absentionFiltering.map((val, key) =>
                                         <>
-                                            <Text style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
+                                            <Text key={key} style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
                                                 {val.name}
                                                 {" "}
                                                 ({statusName[val.status]})
@@ -127,9 +145,9 @@ class AbsentScreen extends React.Component {
                                     ) : <EmptyText />
                                 }
 
-                            </View>
+                            </View> */}
                             <View style={{ flexDirection: 'row', alignSelf: 'center', marginTop: 20 }}>
-                                <Button disabled={_.isEmpty(absentionFiltering)} onPress={() => this.submitAbsention()} title="Ya, kirim" />
+                                <Button onPress={() => this.submitAbsention()} title="Ya, kirim" />
                                 <Button onPress={() => this.setOverlay()} containerStyle={{ marginLeft: 20 }} title="Batal" />
                             </View>
                         </View>
@@ -213,9 +231,7 @@ class AbsentScreen extends React.Component {
                                      </Text>
                                     </Card.FeaturedSubtitle>) : (<></>)
                                 }
-                                <Text>Menambahkan respon list absent untuk membuat auto button grup sesuai dengan status absen siswa</Text>
                                 <Card.Divider />
-
                                 <View>
                                     {
                                         !_.isEmpty(classToday) ? classToday.map((l, i) => (
@@ -243,7 +259,7 @@ class AbsentScreen extends React.Component {
                                     !_.isEmpty(classToday) ?
                                         <>
                                             <Card.Divider />
-                                            <Button onPress={() => { this.filterAbsentionStudent() }} title="Kirim Absensi" />
+                                            <Button onPress={() => { this.setOverlay() }} title="Kirim Absensi" />
                                         </> : <></>
                                 }
                             </Card>
@@ -265,13 +281,14 @@ const styles = StyleSheet.create({
 
 const mapStateToProps = (state) => ({
     absent: _.get(state.teacher, 'absent'),
+    home: _.get(state.teacher, 'home'),
 });
 
 const mapDispatchToProps = (dispatch) => ({
     actions: bindActionCreators(
         {
-            getAbsent,
-            submitAbsent
+            getAbsentTeacher,
+            submitAbsentTeacher
         },
         dispatch,
     ),

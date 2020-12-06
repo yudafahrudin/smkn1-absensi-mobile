@@ -2,7 +2,7 @@ import React from 'react';
 import { ScrollView, View } from 'react-native';
 import { Card, ListItem, Header, Text, Badge } from 'react-native-elements';
 import _ from 'lodash';
-import { getHome } from '../../actions/teacher';
+import { getHomeTeacher } from '../../actions/teacher';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -16,7 +16,7 @@ class HomeScreen extends React.Component {
 
     startingHomeData = async () => {
         const { actions } = this.props;
-        await actions.getHome();
+        await actions.getHomeTeacher();
     }
 
     render() {
@@ -90,13 +90,21 @@ class HomeScreen extends React.Component {
                                                         containerStyle={{ marginTop: 20 }}
                                                         badgeStyle={{ padding: 15 }}
                                                         status="warning"
-                                                        value={<Text style={{ color: "white", fontSize: 18, fontWeight: 'bold' }}>{l.start_at}</Text>} />
+                                                        value={
+                                                            <Text style={{ color: "white", fontSize: 18, fontWeight: 'bold' }}>
+                                                                {l.start_at}
+                                                            </Text>
+                                                        } />
 
                                                     <Badge
                                                         containerStyle={{ marginTop: 20 }}
                                                         badgeStyle={{ padding: 15 }}
                                                         status="success"
-                                                        value={<Text style={{ color: "white", fontSize: 18, fontWeight: 'bold' }}>{l.end_at}</Text>} />
+                                                        value={
+                                                            <Text style={{ color: "white", fontSize: 18, fontWeight: 'bold' }}>
+                                                                {l.end_at}
+                                                            </Text>
+                                                        } />
                                                 </View>
                                             </ListItem.Content>
                                         </ListItem>
@@ -121,7 +129,7 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = (dispatch) => ({
     actions: bindActionCreators(
         {
-            getHome,
+            getHomeTeacher,
         },
         dispatch,
     ),

@@ -1,24 +1,27 @@
 import api from '../services/api';
 import EndPoints from '../constants/endPoints';
 import { Alert } from 'react-native';
-import { TEACHER_ABSENT, TEACHER_HOME, TEACHER_SUBMIT } from '../constants/actionTypes';
+import { PARENT_HOME, ALL_RECAP } from '../constants/actionTypes';
 import moment from 'moment';
 
-export const getHomeTeacher = () => (
+export const getHomeParent = () => (
     dispatch,
     getState,
 ) => {
     const params = {
-        date_absent: moment().format('YYYY-MM-DD')
+        date: moment().format('X')
     };
-
-    return api(getState, dispatch, EndPoints.teacherHome, 'post', params).then(
+    console.log(params);
+    return api(getState, dispatch, EndPoints.parentHome, 'post', params).then(
         (response) => {
             const { data } = response;
             const { status } = data;
+
+            console.log('response', data);
+
             if (status !== 'error') {
                 dispatch({
-                    type: TEACHER_HOME,
+                    type: PARENT_HOME,
                     payload: { ...data.data }
                 });
             }
@@ -26,31 +29,33 @@ export const getHomeTeacher = () => (
     );
 };
 
-export const getAbsentTeacher = () => (
+export const getAllRecapitulationParent = () => (
     dispatch,
     getState,
 ) => {
-    const params = {
-        day: moment().format('ddd'),
-        time: moment().format('HH:mm:ss'),
-        date_absent: moment().format('YYYY-MM-DD')
-    };
+    // const params = {
+    //     day: moment().format('ddd'),
+    //     time: moment().format('HH:mm:ss'),
+    //     date_absent: moment().format('YYYY-MM-DD')
+    // };
 
-    return api(getState, dispatch, EndPoints.teacherAbsent, 'post', params).then(
+    return api(getState, dispatch, EndPoints.allRecapitulation, 'get').then(
         (response) => {
             const { data } = response;
             const { status } = data;
-            console.log('get absent', response);
+            console.log(data);
+
             if (status !== 'error') {
                 dispatch({
-                    type: TEACHER_ABSENT,
+                    type: ALL_RECAP,
                     payload: { ...data.data }
                 });
             }
         },
     );
 };
-export const submitAbsentTeacher = (scheduleId, userId, reasons) => (
+
+export const submitAbsent = (scheduleId, userId, reasons) => (
     dispatch,
     getState,
 ) => {
