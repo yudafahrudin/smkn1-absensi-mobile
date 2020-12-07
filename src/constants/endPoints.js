@@ -3,6 +3,7 @@ export default {
     login: '/api/login',
     parentHome: '/api/parent/home',
     allRecapitulation: '/api/parent/allrecapitulation',
+    parentAbsentSubmit: '/api/parent/absenteeism/submit',
     teacherHome: '/api/teacher/home',
     teacherAbsent: '/api/teacher/absenteeism',
     teacherAbsentSubmit: '/api/teacher/absenteeism/submit',

@@ -76,9 +76,6 @@ class AbsentScreen extends React.Component {
             thereStudentAbsentToday = absenToday.find(val => val.user_id == studentId)
         }
         const studentData = absention[studentId];
-        // const studentStatus = thereStudentAbsentToday ?
-        //     this.indexOfStatusName(thereStudentAbsentToday.reason)
-        //     : studentData ? studentData.status : 0;
         const studentStatus = studentData ? studentData.status : 0;
         return studentStatus;
     }
@@ -131,21 +128,6 @@ class AbsentScreen extends React.Component {
                     <Overlay isVisible={isOverlay}>
                         <View style={{ width: 340 }}>
                             <Text style={{ fontSize: 18, textAlign: 'center' }}>Apakah anda yakin dengan absensi ini ?</Text>
-                            {/* <View style={{ marginTop: 20 }}>
-
-                                {
-                                    !_.isEmpty(absentionFiltering) ? absentionFiltering.map((val, key) =>
-                                        <>
-                                            <Text key={key} style={{ fontSize: 18, fontWeight: 'bold', textAlign: 'center' }}>
-                                                {val.name}
-                                                {" "}
-                                                ({statusName[val.status]})
-                                            </Text>
-                                        </>
-                                    ) : <EmptyText />
-                                }
-
-                            </View> */}
                             <View style={{ flexDirection: 'row', alignSelf: 'center', marginTop: 20 }}>
                                 <Button onPress={() => this.submitAbsention()} title="Ya, kirim" />
                                 <Button onPress={() => this.setOverlay()} containerStyle={{ marginLeft: 20 }} title="Batal" />

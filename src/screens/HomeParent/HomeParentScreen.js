@@ -56,8 +56,7 @@ class HomeParentScreen extends React.Component {
     render() {
         const { home, user } = this.props;
         const { absenToday } = home;
-        console.log('abs', absenToday);
-        console.log('abs', user);
+
         if (home) {
             return (
                 <>

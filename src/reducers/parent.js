@@ -1,4 +1,4 @@
-import { PARENT_HOME, ALL_RECAP, RESET_STATE } from '../constants/actionTypes';
+import { PARENT_HOME, PARENT_SUBMIT, ALL_RECAP, RESET_STATE } from '../constants/actionTypes';
 
 const initialState = {
     home: {
@@ -22,6 +22,11 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 allRecap: payload.all_recap,
+            };
+        }
+        case PARENT_SUBMIT: {
+            return {
+                ...state,
             };
         }
         case RESET_STATE: {

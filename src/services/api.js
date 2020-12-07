@@ -23,6 +23,7 @@ const insertFormData = (formData, key, value) => {
 };
 
 const transformFormData = (data) => {
+  console.log(data);
   const form = new FormData();
   _.forEach(data, (v, k) => {
     insertFormData(form, k, v);
@@ -54,14 +55,14 @@ const api = (getState, dispatch, endPoint, method = 'get', params, headers) => {
 
     params: method === 'get' ? params : {},
     data: method === 'post' || method === 'put' ? params : undefined,
-    transformRequest: [
-      (requestData, requestHeaders) => {
-        if (requestHeaders['Content-Type'] === 'multipart/form-data') {
-          return transformFormData(requestData);
-        }
-        return JSON.stringify(params);
-      },
-    ],
+    // transformRequest: [
+    //   (requestData, requestHeaders) => {
+    //     if (requestHeaders['Content-Type'] === 'multipart/form-data') {
+    //       return transformFormData(requestData);
+    //     }
+    //     return JSON.stringify(params);
+    //   },
+    // ],
   };
 
   console.log('option data', optionData);
@@ -71,9 +72,9 @@ const api = (getState, dispatch, endPoint, method = 'get', params, headers) => {
       return response;
     })
     .catch((error) => {
-      const { response } = error;
+      console.log(error);
+      const { response, message } = error;
       Alert.alert('error', JSON.stringify(response.data.message));
-      return response;
     });
 };
 
