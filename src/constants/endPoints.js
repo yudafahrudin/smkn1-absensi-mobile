@@ -7,4 +7,5 @@ export default {
     teacherHome: '/api/teacher/home',
     teacherAbsent: '/api/teacher/absenteeism',
     teacherAbsentSubmit: '/api/teacher/absenteeism/submit',
+    submitNotificationToken: '/api/user/notification/token',
 }

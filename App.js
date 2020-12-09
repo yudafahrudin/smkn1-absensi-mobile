@@ -5,6 +5,7 @@ import AppContainer from './AppContainer';
 import { store, persistor } from './src/store';
 
 const App: () => React$Node = () => {
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>

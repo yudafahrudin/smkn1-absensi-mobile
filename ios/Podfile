@@ -10,6 +10,10 @@ target 'Smkn1Absensi' do
 
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
 
+  pod 'RNFBApp', :path => '../node_modules/@react-native-firebase/app'
+
+  pod 'RNFBMessaging', :path => '../node_modules/@react-native-firebase/messaging'
+
   target 'Smkn1AbsensiTests' do
     inherit! :complete
     # Pods for testing

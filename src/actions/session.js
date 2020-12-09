@@ -1,6 +1,6 @@
 import api from '../services/api';
 import EndPoints from '../constants/endPoints';
-import { USER } from '../constants/actionTypes';
+import { USER, USER_NOTIFICATION_TOKEN } from '../constants/actionTypes';
 
 export const login = (username, password, type, afterSuccess, afterError) => (
   dispatch,
@@ -56,9 +56,35 @@ export const updateprofile = (data) => (dispatch, getState) => {
   );
 };
 
-export const logout = (afterSuccess) => (dispatch) => {
+export const submitNotificationTokenLocal = (data) => (dispatch, getState) => {
+  return dispatch({
+    type: USER_NOTIFICATION_TOKEN,
+    payload: {
+      notification_token: data,
+    },
+  });
+};
+
+export const submitNotificationToken = (token = null) => (dispatch, getState) => {
+
+  const params = {
+    notification_token: token
+  }
+
+  return api(getState, dispatch, EndPoints.submitNotificationToken, 'post', params).then(
+    () => {
+      dispatch({
+        type: USER_NOTIFICATION_TOKEN,
+        payload: {
+          notification_token: token,
+        },
+      });
+    },
+  );
+};
+
+export const logout = () => (dispatch) => {
   dispatch({
     type: 'RESET_STATE',
   })
-  setTimeout(() => afterSuccess(), 0)
 };

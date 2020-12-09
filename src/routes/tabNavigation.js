@@ -5,6 +5,7 @@ import _ from 'lodash';
 
 import { getHomeTeacher, getAbsentTeacher } from '../actions/teacher';
 import { getHomeParent } from '../actions/parent';
+import { submitNotificationToken } from '../actions/session';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
@@ -16,8 +17,21 @@ import ProfileScreen from '../screens/Profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
+const submitTokenToUser = async (actions, notificationToken, user) => {
+    if (notificationToken && user) {
+        console.log(user.type);
+        if (user.type === "siswa") {
+            await actions.submitNotificationToken(notificationToken);
+        }
+        // if (user.type == 'siswa') {
+        // }
+    }
+}
+
 const IndexNavigation = (props) => {
-    const { user } = props;
+    const { user, notificationToken, actions } = props;
+
+    submitTokenToUser(actions, notificationToken, user);
 
     if (!_.isEmpty(user) && user.type == 'siswa') {
         return (
@@ -128,13 +142,14 @@ const IndexNavigation = (props) => {
 }
 
 const mapStateToProps = (state) => ({
-    user: _.get(state.session, 'user')
+    user: _.get(state.session, 'user'),
+    notificationToken: _.get(state.session, 'notificationToken')
 });
 
 const mapDispatchToProps = (dispatch) => ({
     actions: bindActionCreators(
         {
-            getHomeTeacher, getAbsentTeacher, getHomeParent
+            getHomeTeacher, getAbsentTeacher, getHomeParent, submitNotificationToken
         },
         dispatch,
     ),

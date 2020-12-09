@@ -1,5 +1,6 @@
 export const LOGIN = 'LOGIN';
 export const USER = 'USER';
+export const USER_NOTIFICATION_TOKEN = 'USER_NOTIFICATION_TOKEN';
 export const PARENT_HOME = 'PARENT_HOME';
 export const PARENT_SUBMIT = 'PARENT_SUBMIT';
 export const ALL_RECAP = 'ALL_RECAP';

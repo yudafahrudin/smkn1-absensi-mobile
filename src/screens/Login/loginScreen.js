@@ -18,9 +18,9 @@ passwordInput = null;
 
 const LoginScreen = (props) => {
     const bgImage = require('../../assets/images/classroom.jpg');
-    const [username, setUsername] = useState('121212');
+    const [username, setUsername] = useState('131300');
     const [password, setPassword] = useState("adminadmin");
-    const [type, setType] = useState("guru");
+    const [type, setType] = useState("siswa");
     const [usernameValid, setUsernameValid] = useState(true);
     const [passwordValid, setpasswordValid] = useState(true);
     const [overlayActive, setOverlay] = useState(false);
