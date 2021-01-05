@@ -18,8 +18,8 @@ passwordInput = null;
 
 const LoginScreen = (props) => {
     const bgImage = require('../../assets/images/classroom.jpg');
-    const [username, setUsername] = useState('131300');
-    const [password, setPassword] = useState("adminadmin");
+    const [username, setUsername] = useState("");
+    const [password, setPassword] = useState("");
     const [type, setType] = useState("siswa");
     const [usernameValid, setUsernameValid] = useState(true);
     const [passwordValid, setpasswordValid] = useState(true);

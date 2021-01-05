@@ -9,7 +9,8 @@ import { submitNotificationToken } from '../actions/session';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
-import HomeStackNavigation from '../routes/homeStackNavigation'
+import HomeParentStackNavigation from '../routes/homeStackNavigation'
+import AbsentTeacherStackNavigation from '../routes/absentTeacherStackNavigation'
 import FormAbsentScreen from '../screens/FormAbsent/FormAbsentScreen';
 import HomeScreen from '../screens/Home/HomeScreen';
 import AbsentScreen from '../screens/Absent/AbsentScreen';
@@ -23,8 +24,6 @@ const submitTokenToUser = async (actions, notificationToken, user) => {
         if (user.type === "siswa") {
             await actions.submitNotificationToken(notificationToken);
         }
-        // if (user.type == 'siswa') {
-        // }
     }
 }
 
@@ -63,21 +62,22 @@ const IndexNavigation = (props) => {
                             color={coloring}
                             size={30}
                         />
-                    }
+                    },
+                    unmountOnBlur: true
                 })} >
                 <Tab.Screen name="Main"
                     listeners={() => ({
-                        tabPress: async () => {
-                            const { actions } = props;
-                            await actions.getHomeParent();
+                        tabPress: () => {
+                            // const { actions } = props;
+                            // await actions.getHomeParent();
                         },
                     })}
-                    children={() => <HomeStackNavigation {...props} />} />
+                    children={() => <HomeParentStackNavigation {...props} />} />
                 <Tab.Screen name="Ajukan Izin"
                     listeners={() => ({
-                        tabPress: async () => {
-                            const { actions } = props;
-                            await actions.getHomeParent();
+                        tabPress: () => {
+                            // const { actions } = props;
+                            // await actions.getHomeParent();
                         },
                     })}
                     children={() => <FormAbsentScreen {...props} />} />
@@ -116,24 +116,22 @@ const IndexNavigation = (props) => {
                             color={coloring}
                             size={30}
                         />
-                    }
+                    },
+                    unmountOnBlur: true
                 })} >
                 <Tab.Screen name="Main"
                     listeners={() => ({
-                        tabPress: async () => {
-                            const { actions } = props;
-                            await actions.getHomeTeacher();
+                        tabPress: () => {
+                            // const { actions } = props;
+                            // await actions.getHomeTeacher();
                         },
                     })}
                     children={() => <HomeScreen {...props} />} />
                 <Tab.Screen name="Absensi"
                     listeners={() => ({
-                        tabPress: async () => {
-                            const { actions } = props;
-                            await actions.getAbsentTeacher();
-                        },
+                        tabPress: () => { },
                     })}
-                    children={() => <AbsentScreen {...props} />} />
+                    children={() => <AbsentTeacherStackNavigation {...props} />} />
                 <Tab.Screen name="Profile" children={() => <ProfileScreen {...props} />} />
             </Tab.Navigator >
         )

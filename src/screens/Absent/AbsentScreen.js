@@ -1,6 +1,12 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView, View, Text, StyleSheet } from 'react-native';
-import { Badge, ButtonGroup, Card, ListItem, Header, Button, Overlay } from 'react-native-elements';
+import { useFocusEffect } from '@react-navigation/native';
+import { Badge, ButtonGroup, Card, ListItem, Header, Button, Overlay, CheckBox, Divider } from 'react-native-elements';
+import DataTable from 'react-native-paper/lib/commonjs/components/DataTable/DataTable';
+import DataTableHeader from 'react-native-paper/lib/commonjs/components/DataTable/DataTableHeader';
+import DataTableTitle from 'react-native-paper/lib/commonjs/components/DataTable/DataTableTitle';
+import DataTableRow from 'react-native-paper/lib/commonjs/components/DataTable/DataTableRow';
+import DataTableCell from 'react-native-paper/lib/commonjs/components/DataTable/DataTableCell';
 import { getAbsentTeacher, submitAbsentTeacher } from '../../actions/teacher';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -14,12 +20,19 @@ class AbsentScreen extends React.Component {
         selectedIndex: -1,
         absention: [],
         absentionFiltering: [],
-        statusName: ['masuk', 'absen', 'izin', 'sakit', 'lainnya'],
-        isOverlay: false
+        statusName: ['masuk', 'absen', 'sakit', 'izin', 'lainnya'],
+        isOverlay: false,
+        isFocus: false,
     }
 
     componentDidMount = () => {
         this.startingAbsentData()
+    }
+
+    componentWillUnmount = () => {
+        this.setState({
+            isFocus: true
+        })
     }
 
     startingAbsentData = async () => {
@@ -29,21 +42,21 @@ class AbsentScreen extends React.Component {
         );
     }
 
-    generateListAbsention = () => {
+    generateListAbsention = (obj = null) => {
         const { absent } = this.props;
         const { classToday } = absent;
-
         let student = [];
         if (classToday) {
             classToday.map((val) => {
                 if (val.status) {
-                    _.assign(val, { status: this.indexOfStatusName(val.status) });
+                    _.assign(val, { status: val.detail ? this.indexOfStatusName(val.detail.reason) : val.status });
                     student[val.id] = val;
                 }
             });
         }
 
         this.setState({
+            isFocus: false,
             absention: student
         })
     }
@@ -53,28 +66,27 @@ class AbsentScreen extends React.Component {
         const studentData = absention[studentId];
         console.log(status, studentId, studentData);
         if (studentData) {
-            studentData.status = status;
+            if (status == studentData.status) {
+                studentData.status = 1000;
+            } else {
+                studentData.status = status;
+            }
         }
 
         this.setState({
-            absention
+            absention,
         })
     }
 
     indexOfStatusName = (value) => {
         const { statusName } = this.state
-        return statusName.indexOf(value);
+        if (typeof value == 'number') return value;
+        if (value == 'masuk') return 1000;
+        if (value != 'masuk') return statusName.indexOf(value);
     }
 
     getSelectedIndex = (studentId) => {
-        const { home } = this.props;
-        const { absenToday } = home;
         const { absention } = this.state
-
-        let thereStudentAbsentToday = null;
-        if (!_.isEmpty(absenToday)) {
-            thereStudentAbsentToday = absenToday.find(val => val.user_id == studentId)
-        }
         const studentData = absention[studentId];
         const studentStatus = studentData ? studentData.status : 0;
         return studentStatus;
@@ -97,6 +109,16 @@ class AbsentScreen extends React.Component {
         })
     }
 
+    filteringStatus = (obj) => {
+        if (!_.isEmpty(obj)) {
+            obj.filter(val => {
+                val.status = this.indexOfStatusName(val.status);
+            })
+            return obj;
+        }
+        return [];
+    }
+
     submitAbsention = async () => {
         const { absention, statusName } = this.state;
         const { actions, absent } = this.props;
@@ -106,14 +128,63 @@ class AbsentScreen extends React.Component {
         await actions.submitAbsentTeacher(scheduleToday.id, userId, reasons).then(() => this.setOverlay());
     }
 
+    changeDayName = (hari) => {
+        switch (hari) {
+            case 0: hari = "Minggu"; break;
+            case 1: hari = "Senin"; break;
+            case 2: hari = "Selasa"; break;
+            case 3: hari = "Rabu"; break;
+            case 4: hari = "Kamis"; break;
+            case 5: hari = "Jum'at"; break;
+            case 6: hari = "Sabtu"; break;
+        }
+        return hari;
+    }
 
+    changeMonthName = (bulan) => {
+        switch (bulan) {
+            case 0: bulan = "Januari"; break;
+            case 1: bulan = "Februari"; break;
+            case 2: bulan = "Maret"; break;
+            case 3: bulan = "April"; break;
+            case 4: bulan = "Mei"; break;
+            case 5: bulan = "Juni"; break;
+            case 6: bulan = "Juli"; break;
+            case 7: bulan = "Agustus"; break;
+            case 8: bulan = "September"; break;
+            case 9: bulan = "Oktober"; break;
+            case 10: bulan = "November"; break;
+            case 11: bulan = "Desember"; break;
+        }
+        return bulan;
+    }
+
+    submitFrom = (from) => {
+        if (from.submit_from_admin) {
+            return 'absensi diupdate oleh Admin'
+        }
+        if (from.submit_from_teacher) {
+            return 'absensi diupdate oleh Guru'
+        }
+        if (from.submit_from_parent) {
+            return 'absensi diupdate oleh Orang Tua'
+        }
+    }
 
     render() {
         const { absent } = this.props;
         const { classToday, scheduleToday } = absent;
-        const { absention, statusName, isOverlay, absentionFiltering } = this.state;
+        const { absention, statusName, isOverlay, absentionFiltering, isFocus } = this.state;
 
-        console.log('absent', absention);
+        const date = new Date();
+        const numberdate = date.get
+        const tahun = date.getFullYear();
+        const bulan = date.getMonth();
+        const tanggal = date.getDate();
+        const hari = date.getDay();
+        const jam = date.getHours();
+        const menit = date.getMinutes();
+        const detik = date.getSeconds();
 
         if (absent) {
             return (
@@ -137,22 +208,65 @@ class AbsentScreen extends React.Component {
                     <ScrollView style={
                         {
                             height: '100%',
-                            padding: 5,
+                            padding: 0,
                             backgroundColor: '#f0f0f0'
                         }}
                     >
-                        <View style={{ marginBottom: 50 }}>
+                        <View style={{ marginBottom: 50, marginHorizontal: -15 }}>
                             <Card>
-                                <Card.Title style={{ fontSize: 20, fontWeight: '500' }}>
-                                    JADWAL ANDA SEKARANG
-                                </Card.Title>
+                                <Card.Title style={{ fontSize: 19, fontWeight: 'bold' }}>
+                                    JADWAL YANG SEDANG BERJALAN
+                            </Card.Title>
+                                <View style={{ flexDirection: 'row', alignContent: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                                    {/* <Text style={{ marginRight: 10, fontSize: 16, color: 'grey', fontWeight: 'bold' }}>
+                                        Hari
+                                    </Text> */}
+                                    <Text style={{ marginRight: 10, fontSize: 16, color: 'grey' }}>
+                                        {this.changeDayName(hari)}
+                                    </Text>
+                                    <Text style={{ marginRight: 10, fontSize: 16, color: 'grey' }}>
+                                        {tanggal}
+                                        {" "}
+                                    /
+                                    {" "}
+                                        {this.changeMonthName(bulan)}
+                                        {" "}
+                                    /
+                                    {" "}
+                                        {tahun}
+                                    </Text>
+                                </View>
                                 <Card.Divider />
-                                <View style={{ alignItems: 'center' }}>
+                                <View>
                                     {
+                                        !_.isEmpty(scheduleToday) ? (<DataTable>
+                                            <DataTableHeader>
+                                                <DataTableTitle numberOfLines={200}>Mata Pelajaran</DataTableTitle>
+                                                {/* <DataTableTitle></DataTableTitle> */}
+                                                <DataTableTitle>Jam Mulai - Selesai</DataTableTitle>
+                                            </DataTableHeader>
+
+                                            <DataTableRow>
+                                                <DataTableCell>{scheduleToday.subject.name}</DataTableCell>
+                                                {/* <DataTableCell> {scheduleToday.start_at.slice(0, -3)} </DataTableCell> */}
+                                                <DataTableCell> {scheduleToday.start_at.slice(0, -3)}  -  {scheduleToday.end_at.slice(0, -3)}</DataTableCell>
+
+                                            </DataTableRow>
+
+                                        </DataTable>) : (<EmptyText />)
+                                    }
+
+                                </View>
+                                <View style={{ alignItems: 'center' }}>
+                                    {/* {
                                         !_.isEmpty(scheduleToday) ? (
                                             <>
-                                                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
-                                                    ({" "}{scheduleToday.subject.name}{" "})
+                                                <Text style={{ fontSize: 20 }}>
+                                                    {scheduleToday.kelas.grade + " "}
+                                                    {scheduleToday.kelas.majors + " "}
+                                                    {scheduleToday.kelas.number + " "}
+                                                    -
+                                                    {" "}{scheduleToday.subject.name}{" "}
                                                 </Text>
                                                 <View style={{
                                                     flexDirection: 'row',
@@ -162,24 +276,12 @@ class AbsentScreen extends React.Component {
                                                     alignItems: 'center'
                                                 }}>
                                                     <Badge
-                                                        // containerStyle={{ marginTop: 20 }}
-                                                        badgeStyle={{ padding: 15 }}
-                                                        status="primary"
-                                                        value={
-                                                            <Text style={{ color: "white", fontSize: 18, fontWeight: 'bold' }}>
-                                                                {scheduleToday.kelas.grade + " "}
-                                                                {scheduleToday.kelas.majors + " "}
-                                                                {scheduleToday.kelas.number + " "}
-                                                            </Text>
-                                                        }
-                                                    />
-                                                    <Badge
-                                                        // containerStyle={{ marginTop: 20 }}
+
                                                         badgeStyle={{ padding: 15 }}
                                                         status="warning"
                                                         value={
                                                             <Text style={{ color: "white", fontSize: 18, fontWeight: 'bold' }}>
-                                                                {scheduleToday.start_at}
+                                                                Mulai : {scheduleToday.start_at}
                                                             </Text>
                                                         }
                                                     />
@@ -188,61 +290,96 @@ class AbsentScreen extends React.Component {
                                                         status="success"
                                                         value={
                                                             <Text style={{ color: "white", fontSize: 18, fontWeight: 'bold' }}>
-                                                                {scheduleToday.end_at}
+                                                                Selesai : {scheduleToday.end_at}
                                                             </Text>
                                                         }
                                                     />
                                                 </View>
                                             </>
                                         ) : (<EmptyText />)
-                                    }
+                                    } */}
                                 </View>
                             </Card>
-                            <Card>
-                                <Card.Title style={{ fontSize: 20, fontWeight: '400' }}>
-                                    DAFTAR SISWA DI JADWAL SEKARANG
-                                </Card.Title>
+                            <Card containerStyle={{ padding: 2, paddingBottom: 20 }}>
                                 {
-                                    !_.isEmpty(scheduleToday) ? (<Card.FeaturedSubtitle style={{ textAlign: 'center', marginTop: -5 }}>
-                                        <Text style={{ color: "#000", fontSize: 20, fontWeight: 'bold' }}>
-                                            ({" "}
-                                            {scheduleToday.kelas.grade + " "}
-                                            {scheduleToday.kelas.majors + " "}
-                                            {scheduleToday.kelas.number + " "}
-                                            {" "})
-                                     </Text>
-                                    </Card.FeaturedSubtitle>) : (<></>)
+                                    !_.isEmpty(absention) ? (
+                                        <>
+                                            <Card.Title style={{ fontSize: 19, fontWeight: 'bold', marginTop: 10 }}>
+                                                KELAS
+                                                {" "}
+                                                {scheduleToday.kelas.grade + " "}
+                                                {scheduleToday.kelas.majors + " "}
+                                                {scheduleToday.kelas.number + " "}
+                                            </Card.Title>
+                                            <Card.Divider />
+                                        </>
+                                    ) : null
                                 }
-                                <Card.Divider />
-                                <View>
+
+                                <View style={{ justifyContent: 'center' }}>
+                                    {/* <View style={{ marginTop: 10, marginBottom: 20, alignItems: 'center' }}>
+                                        <View style={{ flexDirection: 'row', alignContent: 'space-around' }}>
+                                            <Text style={{ margin: 5 }}>M = Masuk </Text>
+                                            <Text style={{ margin: 5 }}>A = Absent </Text>
+                                            <Text style={{ margin: 5 }}>S = Sakit </Text>
+                                            <Text style={{ margin: 5 }}>I = Izin </Text>
+                                        </View>
+                                    </View> */}
                                     {
-                                        !_.isEmpty(classToday) ? classToday.map((l, i) => (
-                                            <ListItem key={i} style={{ marginTop: -10 }}>
+                                        !_.isEmpty(absention) ? absention.map((l, i) => (
+                                            <ListItem key={i} containerStyle={{ padding: 5, margin: 3 }} style={{ marginTop: -10 }}>
                                                 <ListItem.Content>
-                                                    <ListItem.Title style={{ fontSize: 17 }}>{l.name}</ListItem.Title>
-                                                    <ListItem.Subtitle>{l.nis}</ListItem.Subtitle>
-                                                    <ButtonGroup
-                                                        onPress={(index) => this.updateIndex(index, l.id)}
-                                                        selectedIndex={this.getSelectedIndex(l.id)}
-                                                        buttons={statusName}
-                                                        selectedTextStyle={styles.selectedText}
-                                                        containerStyle={{
-                                                            marginLeft: 0,
-                                                            marginTop: 10
-                                                        }}
-                                                    />
+                                                    <ListItem.Title style={{ fontSize: 17, fontWeight: 'bold', margin: 10 }}>{l.name.toUpperCase()}</ListItem.Title>
+                                                    <View style={{
+                                                        flexDirection: 'row', alignItems: 'space-between',
+                                                        width: '90%'
+                                                    }}>
+                                                        <CheckBox
+                                                            title='M'
+                                                            checked={this.indexOfStatusName(l.status) == 0 ? true : false}
+                                                            onPress={() => this.updateIndex(0, l.id)}
+                                                        />
+                                                        <CheckBox
+                                                            title='A'
+                                                            checked={this.indexOfStatusName(l.status) === 1 ? true : false}
+                                                            onPress={() => this.updateIndex(1, l.id)}
+                                                        />
+                                                        <CheckBox
+                                                            title='S'
+                                                            checked={this.indexOfStatusName(l.status) == 2 ? true : false}
+                                                            onPress={() => this.updateIndex(2, l.id)}
+                                                        />
+                                                        <CheckBox
+                                                            title='I'
+                                                            checked={this.indexOfStatusName(l.status) == 3 ? true : false}
+                                                            onPress={() => this.updateIndex(3, l.id)}
+                                                        />
+                                                    </View>
+                                                    {l.detail ? (
+                                                        <View flexDirection="row">
+                                                            <Text style={{ fontSize: 15, color: 'grey', marginLeft: 10, marginTop: 10 }}>
+                                                                {l.detail ? this.submitFrom(l.detail) : null}
+                                                            </Text>
+                                                            <Text
+                                                                style={{ fontSize: 15, marginLeft: 10, marginTop: 10, color: 'blue', textDecorationLine: 'underline' }}
+                                                                onPress={() => this.props.navigation.navigate('AbsentDetailScreen', l.detail)}
+                                                            >
+                                                                klik untuk lihat detail
+                                                            </Text>
+                                                        </View>
+                                                    ) : null}
+
                                                 </ListItem.Content>
                                             </ListItem>
-                                        )) : (<EmptyText />)
+                                        )) : (<View style={{ marginTop: 10 }}><EmptyText /></View>)
                                     }
                                 </View>
 
                                 {
-                                    !_.isEmpty(classToday) ?
-                                        <>
-                                            <Card.Divider />
-                                            <Button onPress={() => { this.setOverlay() }} title="Kirim Absensi" />
-                                        </> : <></>
+                                    !_.isEmpty(absention) ?
+                                        <View style={{ width: '100%', alignItems: 'center' }}>
+                                            <Button containerStyle={{ width: '90%', marginVertical: 20 }} onPress={() => { this.setOverlay() }} title="Kirim Absensi" />
+                                        </View> : <></>
                                 }
                             </Card>
                         </View>

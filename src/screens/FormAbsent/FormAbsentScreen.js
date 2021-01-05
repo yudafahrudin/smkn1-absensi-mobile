@@ -1,32 +1,48 @@
 import React from 'react';
 import { ScrollView, View, ActivityIndicator, Alert } from 'react-native';
-import { Card, ListItem, Header, Text, Badge, Button, Input, Image, Overlay } from 'react-native-elements';
+import { Card, ListItem, Header, Text, Badge, Button, Input, Image, Overlay, CheckBox } from 'react-native-elements';
+import { submitAbsentParent, getHomeParent } from '../../actions/parent';
 import { Picker } from '@react-native-picker/picker';
 import ImagePicker from 'react-native-image-crop-picker';
-import _ from 'lodash';
-import { submitAbsentParent, getHomeParent } from '../../actions/parent';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import DataTable from 'react-native-paper/lib/commonjs/components/DataTable/DataTable';
+import DataTableHeader from 'react-native-paper/lib/commonjs/components/DataTable/DataTableHeader';
+import DataTableTitle from 'react-native-paper/lib/commonjs/components/DataTable/DataTableTitle';
+import DataTableRow from 'react-native-paper/lib/commonjs/components/DataTable/DataTableRow';
+import DataTableCell from 'react-native-paper/lib/commonjs/components/DataTable/DataTableCell';
 import EmptyText from '../../components/EmptyText';
 import moment from 'moment';
+import _ from 'lodash';
 
 class FormAbsentScreen extends React.Component {
 
     state = {
-        reasons: 'absen',
-        description: null,
+        reasons: 'sakit',
+        description: "",
         image: null,
         isOverlay: false,
+        checked: [],
         imageInformation: null
     }
 
     componentDidMount = () => {
         this.startingHomeData()
+        this.setChecked()
     }
 
     startingHomeData = async () => {
         const { actions } = this.props;
         await actions.getHomeParent();
+    }
+
+    setChecked = () => {
+        const { home } = this.props;
+        const { absenToday } = home;
+        const checked = absenToday.map(val => true);
+        this.setState({
+            checked
+        })
     }
 
     getColorBadge = (status) => {
@@ -117,7 +133,6 @@ class FormAbsentScreen extends React.Component {
         }
         this.setOverlay()
         await actions.submitAbsentParent(data).then(async (result) => {
-            console.log('22', result);
             if (result) {
                 const { data } = result;
                 const { status, message } = data;
@@ -127,21 +142,31 @@ class FormAbsentScreen extends React.Component {
                         Alert.alert('Error', message)
                     }, 1000)
                 } else {
+                    this.setOverlay()
                     await actions.getHomeParent();
                     setTimeout(() => {
-                        navigation.navigate('HomeParentScreen')
+                        // navigation.navigate('HomeParentScreen')
                     }, 500);
                 }
             }
         });
     }
 
+    returnBadge = (data) => {
+        return (<Badge
+            badgeStyle={{ padding: 13 }}
+            status={this.getColorBadge(data.absenteeism)}
+            value={<Text style={{ fontSize: 13, color: 'white' }}>
+                {data.absenteeism}
+            </Text>}
+        />);
+    }
 
     render() {
-        const { reasons, image, isOverlay } = this.state;
+        const { reasons, image, isOverlay, checked } = this.state;
         const { home } = this.props;
         const { absenToday } = home;
-
+        console.log('check', checked);
         return (
             <>
                 <Header
@@ -162,31 +187,42 @@ class FormAbsentScreen extends React.Component {
                     }}
                 >
                     <View style={{ marginBottom: 50 }}>
-                        <Card>
+                        <Card containerStyle={{ padding: 0, paddingTop: 10 }}>
                             <Card.Title style={{ fontSize: 20, fontWeight: '500' }}>
-                                ABSENSI HARI INI
+                                MATA PELAJARAN
                                 </Card.Title>
+                            <Card.Divider />
+                            <Card.FeaturedSubtitle style={{
+                                color: 'grey', paddingHorizontal: 25,
+                                fontWeight: '500', textAlign: 'center'
+                            }}>
+                                Pilih/Centang mata pelajaran yang ingin anda ajukan untuk izin
+                                </Card.FeaturedSubtitle>
+
                             {
                                 !_.isEmpty(absenToday) ? (absenToday.map((l, i) => (
                                     <ListItem key={i} bottomDivider>
                                         <ListItem.Content>
-                                            <ListItem.Title style={{ color: '#000' }}>
-                                                <Text style={{ fontSize: 20 }}>
-                                                    {l.subject.name} -
-                                                        </Text>
-                                                <Text style={{ fontSize: 15 }}>
-                                                    {"   "} {l.start_at} - {l.end_at}
+                                            <ListItem.Title style={{ color: '#000', paddingLeft: 35 }}>
+                                                <Text style={{ fontSize: 16 }}>
+                                                    {l.subject.name}
                                                 </Text>
                                             </ListItem.Title>
-                                            <ListItem.Subtitle>
-                                                <Badge
-                                                    badgeStyle={{ marginVertical: 10, padding: 15 }} status={this.getColorBadge(l.absenteeism)}
-                                                    value={<Text style={{ fontSize: 15, color: 'white' }}>
-                                                        {l.absenteeism}
-                                                    </Text>}
-                                                />
-
-                                            </ListItem.Subtitle>
+                                            <View flexDirection="row" style={{ marginLeft: -10 }}>
+                                                <CheckBox containerStyle={{ padding: 0, justifyContent: 'center' }} />
+                                                <DataTable style={{ marginLeft: -15 }}>
+                                                    <DataTableHeader style={{ borderBottomColor: 'white' }}>
+                                                        <DataTableTitle numberOfLines={20}>Status</DataTableTitle>
+                                                        <DataTableTitle>Jam mulai - selesai</DataTableTitle>
+                                                    </DataTableHeader>
+                                                    <DataTableRow style={{ borderBottomColor: 'white' }}>
+                                                        <DataTableCell>
+                                                            {this.returnBadge(l)}
+                                                        </DataTableCell>
+                                                        <DataTableCell>{l.start_at.slice(0, -3)} - {l.end_at.slice(0, -3)}</DataTableCell>
+                                                    </DataTableRow>
+                                                </DataTable>
+                                            </View>
                                         </ListItem.Content>
                                     </ListItem>
                                 ))) : (<EmptyText />)
@@ -209,7 +245,7 @@ class FormAbsentScreen extends React.Component {
                                     onValueChange={(itemValue, itemIndex) => {
                                         this.setReasons(itemValue)
                                     }}>
-                                    <Picker.Item label="absen" value="absen" />
+                                    {/* <Picker.Item label="absen" value="absen" /> */}
                                     <Picker.Item label="izin" value="izin" />
                                     <Picker.Item label="sakit" value="sakit" />
                                     <Picker.Item label="lainnya" value="lainnya" />

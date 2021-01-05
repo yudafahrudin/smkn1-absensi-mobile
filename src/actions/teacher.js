@@ -40,7 +40,7 @@ export const getAbsentTeacher = () => (
         (response) => {
             const { data } = response;
             const { status } = data;
-            console.log('get absent', response);
+            console.log('respon', response);
             if (status !== 'error') {
                 dispatch({
                     type: TEACHER_ABSENT,
@@ -67,8 +67,7 @@ export const submitAbsentTeacher = (scheduleId, userId, reasons) => (
             const { data } = response;
             const { status } = data;
 
-            console.log('post absent', response);
-
+            Alert.alert('Berhasil', 'Absen berhasil dikirim');
             if (status !== 'error') {
                 Alert.alert('Berhasil', data.message);
                 dispatch({

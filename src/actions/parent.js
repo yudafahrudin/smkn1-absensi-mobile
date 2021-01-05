@@ -16,9 +16,7 @@ export const getHomeParent = () => (
         (response) => {
             const { data } = response;
             const { status } = data;
-
-            console.log('response', data);
-
+            console.log('response 1 1 1 1', data);
             if (status !== 'error') {
                 dispatch({
                     type: PARENT_HOME,
