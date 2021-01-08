@@ -121,8 +121,8 @@ class HomeScreen extends React.Component {
                                 <View>
                                     <DataTable>
                                         <DataTableHeader>
-                                            <DataTableTitle>Hari</DataTableTitle>
-                                            <DataTableTitle>Mapel</DataTableTitle>
+                                            <DataTableTitle numberOfLines={2}>Hari</DataTableTitle>
+                                            <DataTableTitle numberOfLines={10}>Mapel</DataTableTitle>
                                             <DataTableTitle>Kelas</DataTableTitle>
                                             <DataTableTitle>Mulai - Selesai</DataTableTitle>
                                         </DataTableHeader>

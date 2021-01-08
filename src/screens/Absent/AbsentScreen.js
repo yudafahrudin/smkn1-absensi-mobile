@@ -185,7 +185,7 @@ class AbsentScreen extends React.Component {
         const jam = date.getHours();
         const menit = date.getMinutes();
         const detik = date.getSeconds();
-
+        let numbering = 1;
         if (absent) {
             return (
                 <>
@@ -300,6 +300,17 @@ class AbsentScreen extends React.Component {
                                     } */}
                                 </View>
                             </Card>
+                            <Card>
+                                <View style={{ flex: 1 }}>
+                                    <Text style={{ textAlign: 'center', marginBottom: 10 }}>Informasi absensi</Text>
+                                    <View flexDirection="row" style={{ flex: 1, justifyContent: 'space-around' }}>
+                                        <Text style={{ fontSize: 15, color: 'grey' }}>H = Hadir</Text>
+                                        <Text style={{ fontSize: 15, color: 'grey' }}>A = Absen</Text>
+                                        <Text style={{ fontSize: 15, color: 'grey' }}>S = Sakit</Text>
+                                        <Text style={{ fontSize: 15, color: 'grey' }}>I = Izin</Text>
+                                    </View>
+                                </View>
+                            </Card>
                             <Card containerStyle={{ padding: 2, paddingBottom: 20 }}>
                                 {
                                     !_.isEmpty(absention) ? (
@@ -329,13 +340,20 @@ class AbsentScreen extends React.Component {
                                         !_.isEmpty(absention) ? absention.map((l, i) => (
                                             <ListItem key={i} containerStyle={{ padding: 5, margin: 3 }} style={{ marginTop: -10 }}>
                                                 <ListItem.Content>
-                                                    <ListItem.Title style={{ fontSize: 17, fontWeight: 'bold', margin: 10 }}>{l.name.toUpperCase()}</ListItem.Title>
+                                                    <ListItem.Title style={{ margin: 10 }}>
+                                                        <Text style={{ fontSize: 17, fontWeight: '500', margin: 10 }}>
+                                                            {numbering++}. {l.name.toUpperCase()}
+                                                        </Text>
+                                                        <Text style={{ fontSize: 15, fontWeight: '500', margin: 10 }}>
+                                                            {"   "} ({l.nis})
+                                                        </Text>
+                                                    </ListItem.Title>
                                                     <View style={{
                                                         flexDirection: 'row', alignItems: 'space-between',
                                                         width: '90%'
                                                     }}>
                                                         <CheckBox
-                                                            title='M'
+                                                            title='H'
                                                             checked={this.indexOfStatusName(l.status) == 0 ? true : false}
                                                             onPress={() => this.updateIndex(0, l.id)}
                                                         />

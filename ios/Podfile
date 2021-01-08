@@ -14,6 +14,8 @@ target 'Smkn1Absensi' do
 
   pod 'RNFBMessaging', :path => '../node_modules/@react-native-firebase/messaging'
 
+  pod 'RNDateTimePicker', :path => '../node_modules/@react-native-community/datetimepicker'
+
   target 'Smkn1AbsensiTests' do
     inherit! :complete
     # Pods for testing

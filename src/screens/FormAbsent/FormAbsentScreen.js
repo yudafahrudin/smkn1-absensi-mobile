@@ -39,7 +39,7 @@ class FormAbsentScreen extends React.Component {
     setChecked = () => {
         const { home } = this.props;
         const { absenToday } = home;
-        const checked = absenToday.map(val => true);
+        const checked = absenToday.map(val => { return ({ id: val.id, status: false }) });
         this.setState({
             checked
         })
@@ -54,6 +54,9 @@ class FormAbsentScreen extends React.Component {
         }
         if (status == 'belum di mulai') {
             return 'primary';
+        }
+        if (status == 'absen') {
+            return 'error';
         }
         return 'warning';
     }
@@ -113,12 +116,14 @@ class FormAbsentScreen extends React.Component {
     submitAbsent = async () => {
 
         const { actions, navigation } = this.props;
-        const { reasons, imageInformation, description } = this.state;
+        const { reasons, imageInformation, description, checked } = this.state;
 
         // const date = new Date();
         const date = moment(new Date()).format('X');
         const data = new FormData();
-
+        if (checked.filter(val => val.status == true).length > 0) {
+            data.append('schedule', JSON.stringify(checked))
+        }
         data.append('date', date);
         data.append('reasons', reasons);
         data.append('description', description);
@@ -145,7 +150,8 @@ class FormAbsentScreen extends React.Component {
                     this.setOverlay()
                     await actions.getHomeParent();
                     setTimeout(() => {
-                        // navigation.navigate('HomeParentScreen')
+                        console.log(navigation);
+                        navigation.navigate('Main')
                     }, 500);
                 }
             }
@@ -162,11 +168,18 @@ class FormAbsentScreen extends React.Component {
         />);
     }
 
+    checkMapel = (bool, index, id) => {
+        const { checked } = this.state;
+        checked[index] = { status: bool, id };
+        this.setState({
+            checked
+        })
+    }
+
     render() {
         const { reasons, image, isOverlay, checked } = this.state;
         const { home } = this.props;
         const { absenToday } = home;
-        console.log('check', checked);
         return (
             <>
                 <Header
@@ -204,12 +217,15 @@ class FormAbsentScreen extends React.Component {
                                     <ListItem key={i} bottomDivider>
                                         <ListItem.Content>
                                             <ListItem.Title style={{ color: '#000', paddingLeft: 35 }}>
-                                                <Text style={{ fontSize: 16 }}>
+                                                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
                                                     {l.subject.name}
                                                 </Text>
                                             </ListItem.Title>
                                             <View flexDirection="row" style={{ marginLeft: -10 }}>
-                                                <CheckBox containerStyle={{ padding: 0, justifyContent: 'center' }} />
+                                                <CheckBox containerStyle={{ padding: 0, justifyContent: 'center' }}
+                                                    checked={checked[i] ? checked[i].status : false}
+                                                    onPress={() => this.checkMapel(!(checked[i] ? checked[i].status : false), i, l.id)}
+                                                />
                                                 <DataTable style={{ marginLeft: -15 }}>
                                                     <DataTableHeader style={{ borderBottomColor: 'white' }}>
                                                         <DataTableTitle numberOfLines={20}>Status</DataTableTitle>
@@ -239,16 +255,16 @@ class FormAbsentScreen extends React.Component {
                                 <Picker
                                     selectedValue={reasons}
                                     style={{
-                                        height: 45,
+                                        height: 25,
                                         width: '100%'
                                     }}
                                     onValueChange={(itemValue, itemIndex) => {
                                         this.setReasons(itemValue)
                                     }}>
                                     {/* <Picker.Item label="absen" value="absen" /> */}
-                                    <Picker.Item label="izin" value="izin" />
-                                    <Picker.Item label="sakit" value="sakit" />
-                                    <Picker.Item label="lainnya" value="lainnya" />
+                                    <Picker.Item label="SAKIT" value="sakit" />
+                                    <Picker.Item label="IZIN" value="izin" />
+                                    <Picker.Item label="LAINNYA" value="lainnya" />
                                 </Picker>
                             </View>
                             {
@@ -289,6 +305,7 @@ class FormAbsentScreen extends React.Component {
                                 onChangeText={this.setDescription}
                                 multiline={true}
                                 numberOfLines={5}
+                                returnKeyType={"done"}
                             />
                             <Button
                                 containerStyle={{ marginTop: 20 }}

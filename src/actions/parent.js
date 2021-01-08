@@ -27,11 +27,15 @@ export const getHomeParent = () => (
     );
 };
 
-export const getAllRecapitulationParent = () => (
+export const getAllRecapitulationParent = (semester = 'ganjil', year = '2021', useDate = false) => (
     dispatch,
     getState,
 ) => {
-    return api(getState, dispatch, EndPoints.allRecapitulation, 'get').then(
+    const params = useDate ?
+        { start_at: moment(semester).format("DD-MM-YYYY"), end_at: moment(year).format("DD-MM-YYYY"), useDate } :
+        { semester, year, useDate };
+    console.log(params);
+    return api(getState, dispatch, EndPoints.allRecapitulation, 'post', params).then(
         (response) => {
             const { data } = response;
             const { status } = data;

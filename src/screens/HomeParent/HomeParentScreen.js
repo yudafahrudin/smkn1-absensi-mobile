@@ -184,7 +184,7 @@ class HomeParentScreen extends React.Component {
                                             <ListItem key={i} bottomDivider>
                                                 <ListItem.Content>
                                                     <ListItem.Title style={{ color: '#000' }}>
-                                                        <Text style={{ fontSize: 18 }}>
+                                                        <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
                                                             {l.subject.name}
                                                         </Text>
                                                         {/* <Text style={{ fontSize: 15 }}>
