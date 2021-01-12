@@ -222,7 +222,7 @@ class AllRecapitulationScreen extends React.Component {
                                         </View>
                                         <View style={{ flexDirection: 'row' }}>
                                             <Text style={{ margin: 10, width: 100 }}>
-                                                Alasan
+                                                Status
                             </Text>
                                             <Text style={{ margin: 10 }} >
                                                 {l.reason}
@@ -235,12 +235,22 @@ class AllRecapitulationScreen extends React.Component {
                                             <Text style={{ margin: 10 }} >
                                                 {
                                                     l.image ? (<Text onPress={() => this.setImage('https://pinterusmedia.com/storage/user/absent/' + l.user.id + '/' + l.image)}
-                                                        style={{ color: 'blue', textDecorationLine: 'underline' }}>lihat gambar</Text>) : null
+                                                        style={{ color: 'blue', textDecorationLine: 'underline' }}>lihat gambar</Text>) :
+                                                        <Text style={{ color: 'grey' }}>(tidak ada gambar)</Text>
                                                 }
                                             </Text>
                                         </View>
+                                        <View style={{ flexDirection: 'row' }}>
+                                            <Text style={{ margin: 10, width: 100 }}>
+                                                Penjelasan
+                            </Text>
+                                            <Text style={{ margin: 10, flex: 1, flexWrap: 'wrap' }} >
+                                                {l.description ? l.description : <Text style={{ color: 'grey' }}>(kosong)</Text>}
+
+                                            </Text>
+                                        </View>
                                     </View>
-                                    <Text style={{ margin: 20, flex: 1, flexWrap: 'wrap' }}>{l.description ? l.description : null}</Text>
+
                                     <Text style={{ textAlign: 'center', color: 'grey', marginTop: 20 }}>
                                         {this.submitFrom({
                                             submit_from_admin: l.submit_from_admin,
