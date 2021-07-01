@@ -10,6 +10,7 @@ import { Alert } from 'react-native';
 
 // const Drawer = createDrawerNavigator();
 const AppContainer = (props) => {
+  const { user } = props;
 
   useEffect(() => {
 
@@ -26,8 +27,11 @@ const AppContainer = (props) => {
 
     // on message reicive
     messaging().onMessage(async remoteMessage => {
-      console.log(remoteMessage);
-      Alert.alert('PEMBERITAHUAN', remoteMessage.notification.body);
+      if (user) {
+        if (user.type == 'siswa') {
+          Alert.alert('PEMBERITAHUAN', remoteMessage.notification.body);
+        }
+      }
     });
 
   }, []);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { ScrollView, View, ActivityIndicator, Alert } from 'react-native';
-import { Card, ListItem, Header, Text, Badge, Button, Input, Image, Overlay, CheckBox } from 'react-native-elements';
+import { Card, ListItem, Header, Text, Badge, Button, Input, Image, Overlay, ButtonGroup, CheckBox } from 'react-native-elements';
 import { submitAbsentParent, getHomeParent } from '../../actions/parent';
 import { Picker } from '@react-native-picker/picker';
 import ImagePicker from 'react-native-image-crop-picker';
@@ -23,6 +23,8 @@ class FormAbsentScreen extends React.Component {
         image: null,
         isOverlay: false,
         checked: [],
+        setDayOff: 1,
+        selectedIndex: 0,
         imageInformation: null
     }
 
@@ -61,14 +63,19 @@ class FormAbsentScreen extends React.Component {
         return 'warning';
     }
 
-    setReasons = (reasons) => {
+    setDayOff = (setDayOff) => {
         this.setState({
-            reasons: reasons
+            setDayOff
+        })
+    }
+
+    setReasons = (reason) => {
+        this.setState({
+            reason
         })
     }
 
     setDescription = (description) => {
-        console.log(description);
         this.setState({
             description: description
         })
@@ -116,15 +123,28 @@ class FormAbsentScreen extends React.Component {
     submitAbsent = async () => {
 
         const { actions, navigation } = this.props;
-        const { reasons, imageInformation, description, checked } = this.state;
+        const { reasons, imageInformation, description, checked, setDayOff, selectedIndex } = this.state;
 
         // const date = new Date();
-        const date = moment(new Date()).format('X');
+        let date = moment(new Date()).format('X');
+        const dateForLoop = moment(new Date()).format('X');
         const data = new FormData();
+
         if (checked.filter(val => val.status == true).length > 0) {
             data.append('schedule', JSON.stringify(checked))
         }
-        data.append('date', date);
+
+        if (selectedIndex > 0) {
+            date = [dateForLoop];
+
+            for (let i = 1; i < setDayOff; i++) {
+                date.push(
+                    moment.unix(dateForLoop).add(i, 'days').format("X")
+                )
+            }
+            data.append('setdayoff', Number(setDayOff));
+        }
+        data.append('date', JSON.stringify(date));
         data.append('reasons', reasons);
         data.append('description', description);
 
@@ -136,6 +156,7 @@ class FormAbsentScreen extends React.Component {
                 name: 'photo_absention'
             })
         }
+        console.log(date);
         this.setOverlay()
         await actions.submitAbsentParent(data).then(async (result) => {
             if (result) {
@@ -176,10 +197,18 @@ class FormAbsentScreen extends React.Component {
         })
     }
 
+    updateIndex(selectedIndex) {
+        this.setState({
+            selectedIndex
+        })
+    }
+
     render() {
-        const { reasons, image, isOverlay, checked } = this.state;
+        const { reasons, setDayOff, image, isOverlay, checked, selectedIndex } = this.state;
         const { home } = this.props;
         const { absenToday } = home;
+        const buttons = ['sehari', 'lebih dari sehari'];
+
         return (
             <>
                 <Header
@@ -200,55 +229,93 @@ class FormAbsentScreen extends React.Component {
                     }}
                 >
                     <View style={{ marginBottom: 50 }}>
-                        <Card containerStyle={{ padding: 0, paddingTop: 10 }}>
+                        <Card containerStyle={{ padding: 0, paddingTop: 10, paddingHorizontal: 15 }}>
                             <Card.Title style={{ fontSize: 20, fontWeight: '500' }}>
                                 MATA PELAJARAN
                                 </Card.Title>
                             <Card.Divider />
+
                             <Card.FeaturedSubtitle style={{
                                 color: 'grey', paddingHorizontal: 25,
                                 fontWeight: '500', textAlign: 'center'
                             }}>
                                 Pilih/Centang mata pelajaran yang ingin anda ajukan untuk izin
                                 </Card.FeaturedSubtitle>
-
+                            <View style={{ paddingBottom: -10 }}>
+                                <Text style={{ padding: 10, color: 'grey', textAlign: 'center' }}>Opsi izin harian</Text>
+                                <ButtonGroup
+                                    onPress={(val) => this.updateIndex(val)}
+                                    selectedIndex={selectedIndex}
+                                    buttons={buttons}
+                                    containerStyle={{ height: 35, marginBottom: 20 }}
+                                />
+                            </View>
                             {
-                                !_.isEmpty(absenToday) ? (absenToday.map((l, i) => (
-                                    <ListItem key={i} bottomDivider>
-                                        <ListItem.Content>
-                                            <ListItem.Title style={{ color: '#000', paddingLeft: 35 }}>
-                                                <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
-                                                    {l.subject.name}
-                                                </Text>
-                                            </ListItem.Title>
-                                            <View flexDirection="row" style={{ marginLeft: -10 }}>
-                                                <CheckBox containerStyle={{ padding: 0, justifyContent: 'center' }}
-                                                    checked={checked[i] ? checked[i].status : false}
-                                                    onPress={() => this.checkMapel(!(checked[i] ? checked[i].status : false), i, l.id)}
-                                                />
-                                                <DataTable style={{ marginLeft: -15 }}>
-                                                    <DataTableHeader style={{ borderBottomColor: 'white' }}>
-                                                        <DataTableTitle numberOfLines={20}>Status</DataTableTitle>
-                                                        <DataTableTitle>Jam mulai - selesai</DataTableTitle>
-                                                    </DataTableHeader>
-                                                    <DataTableRow style={{ borderBottomColor: 'white' }}>
-                                                        <DataTableCell>
-                                                            {this.returnBadge(l)}
-                                                        </DataTableCell>
-                                                        <DataTableCell>{l.start_at.slice(0, -3)} - {l.end_at.slice(0, -3)}</DataTableCell>
-                                                    </DataTableRow>
-                                                </DataTable>
-                                            </View>
-                                        </ListItem.Content>
-                                    </ListItem>
-                                ))) : (<EmptyText />)
+                                selectedIndex == 0 ? <>
+                                    {
+                                        !_.isEmpty(absenToday) ? (absenToday.map((l, i) => (
+                                            <ListItem key={i} bottomDivider>
+                                                <ListItem.Content>
+                                                    <ListItem.Title style={{ color: '#000', paddingLeft: 35 }}>
+                                                        <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
+                                                            {l.subject.name}
+                                                        </Text>
+                                                    </ListItem.Title>
+                                                    <View flexDirection="row" style={{ marginLeft: -10 }}>
+                                                        <CheckBox containerStyle={{ padding: 0, justifyContent: 'center' }}
+                                                            checked={checked[i] ? checked[i].status : false}
+                                                            onPress={() => this.checkMapel(!(checked[i] ? checked[i].status : false), i, l.id)}
+                                                        />
+                                                        <DataTable style={{ marginLeft: -15 }}>
+                                                            <DataTableHeader style={{ borderBottomColor: 'white' }}>
+                                                                <DataTableTitle numberOfLines={20}>Status</DataTableTitle>
+                                                                <DataTableTitle>Jam mulai - selesai</DataTableTitle>
+                                                            </DataTableHeader>
+                                                            <DataTableRow style={{ borderBottomColor: 'white' }}>
+                                                                <DataTableCell>
+                                                                    {this.returnBadge(l)}
+                                                                </DataTableCell>
+                                                                <DataTableCell>{l.start_at.slice(0, -3)} - {l.end_at.slice(0, -3)}</DataTableCell>
+                                                            </DataTableRow>
+                                                        </DataTable>
+                                                    </View>
+                                                </ListItem.Content>
+                                            </ListItem>
+                                        ))) : (<EmptyText />)
+                                    }</> : <>
+                                        <Text style={{ padding: 10, color: 'grey' }}>Jumlah Hari</Text>
+                                        <View style={{
+                                            borderRadius: 20,
+                                            borderWidth: 1,
+                                            paddingVertical: 10,
+                                            // marginHorizontal: 10,
+                                            borderColor: 'rgba(110, 120, 170, 1)',
+                                            marginBottom: 10,
+                                        }}>
+                                            <Picker
+                                                selectedValue={setDayOff}
+                                                style={{
+                                                    height: 25,
+                                                    width: '100%'
+                                                }}
+                                                onValueChange={(itemValue, itemIndex) => {
+                                                    this.setDayOff(itemValue)
+                                                }}>
+                                                <Picker.Item label="1 Hari" value="1" />
+                                                <Picker.Item label="2 Hari" value="2" />
+                                                <Picker.Item label="3 Hari" value="3" />
+                                                {/* <Picker.Item label="4 Hari" value="4" />
+                                                <Picker.Item label="5 Hari" value="5" /> */}
+                                            </Picker>
+                                        </View></>
                             }
-                        </Card>
-                        <Card>
+
+                            <Text style={{ padding: 10, color: 'grey' }}>Status</Text>
                             <View style={{
                                 borderRadius: 20,
                                 borderWidth: 1,
                                 paddingVertical: 10,
+                                // marginHorizontal: 10,
                                 borderColor: 'rgba(110, 120, 170, 1)',
                                 marginBottom: 10,
                             }}>
@@ -308,7 +375,7 @@ class FormAbsentScreen extends React.Component {
                                 returnKeyType={"done"}
                             />
                             <Button
-                                containerStyle={{ marginTop: 20 }}
+                                containerStyle={{ marginTop: 20, marginBottom: 20 }}
                                 onPress={() => this.submitAbsent()}
                                 title="AJUKAN" />
                         </Card>

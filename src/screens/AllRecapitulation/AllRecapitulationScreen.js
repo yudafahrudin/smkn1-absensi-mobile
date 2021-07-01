@@ -243,7 +243,7 @@ class AllRecapitulationScreen extends React.Component {
                                         <View style={{ flexDirection: 'row' }}>
                                             <Text style={{ margin: 10, width: 100 }}>
                                                 Penjelasan
-                            </Text>
+                                            </Text>
                                             <Text style={{ margin: 10, flex: 1, flexWrap: 'wrap' }} >
                                                 {l.description ? l.description : <Text style={{ color: 'grey' }}>(kosong)</Text>}
 
